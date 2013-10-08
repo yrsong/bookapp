@@ -1,0 +1,33 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ISBN 입력창</title>
+</head>
+<body>
+<form name="booksearch" id="booksearch" method="GET" action="bookinfo.php?isbn=isbn&libcode=libcode">
+	<table border = "0">
+		<tr>
+			<td>ISBN :</td>
+			<td><input type="text" name="isbn" maxlength="13"/>
+			</td>
+			<td rowspan="2"><input type="submit" style="height:48px;" value="찾기" /></td>
+		</tr>
+		<tr>
+			<td colspan ="2" align="right">
+				<select name="libcode">
+				    <option value="0">도서관선택</option>
+				    <option value="0007">강북문화정보센터</option>
+				    <option value="0018">금천구립정보도서관</option>
+				    <option value="0017">금천구립가산정보도서관</option>
+				    <option value="0024">동대문구정보화도서관</option>
+				    <option value="0041">이진아기념도서관</option>
+				</select>
+			</td>
+		</tr>
+	</table>
+	<h5>※ 숫자 13글자 이하로 입력해주세요.</h5>
+	<h5>※ '-'를 제외하고 입력해주세요.</h5>
+</form>
+</body>
+</html>
