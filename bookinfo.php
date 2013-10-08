@@ -14,12 +14,13 @@
  * -수정사항2 : 1.isbn 10자리or13자리 입력제한 / 2.비치중|대출중 리턴값 true|false로 변경 / 3.각 구마다 전체 도서관 검색가능하도록 추가 
  *           4.searchBook의 unichar함수의 mb_convert_encoding => html_entity_decode로 변경.(서버단에서 돌아가지 않는 이유때문)
  *           5.config파일 추가. (도서관 상세코드)
+ *           6.동대문구정보화도서관 추가
  */
 
 //header("Content-Type: application/json");
 
 //include
-include_once 'class/searchBook.php';
+include_once 'class/SearchBook.php';
 include_once 'config.php';
 
 //정보
@@ -201,9 +202,59 @@ if($libcode == "0007"){
 //광진구립도서관(미구현)
 }else if($libcode == "0014"){
 	
-//동대문구정보화도서관(미구현)
+//동대문구정보화도서관
 }else if($libcode == "0024"){
+	//config에 등록.
+	//$locode = 01;
+	if($locode == "01"){$lib = "00000001";} //동대문구정보화도서관
+	else if($locode == "02"){$lib = "00000002";} //장안어린이도서관
+	else if($locode == "03"){$lib = "00000003";} //용두어린이 영어도서관
+	else if($locode == "04"){$lib = "00000004";} //이문체육문화센터 어린이도서관
+	else{$lib = "TOT";} //소장처 전체 검색
+
+	//키값 가져오기 위한 url (검색페이지 url)
+	$url="http://www.l4d.or.kr/search/tot/result?st=FRNT&si=000000000006&q=$isbn";
+	$pattern = "/detail\/CATTOT(.*?)\?mainLink=.*?/is";
+	$key = $obj->getKey_Array($url, $pattern); //책의 고유 키값
 	
+	//검색 결과 갯수가 2개 이상이면 각각의 depth로 들어가 결과 값을 가지고 온다. 
+	for($i = 0; $i < count($key); $i++){
+		//책의 상세 페이지 url
+		$infourl="http://www.l4d.or.kr/search/detail/CATTOT$key[$i]?location=$lib";
+	
+		//책 제목
+		$pattern_title = "/<div class=\"profileTitle\">(.*?)<\/div>/is";
+		$title = $title = $obj->getBook_Encoding($infourl, $pattern_title);
+
+		$pattern_bookInfo = "/\<td.*?\>(.*?)\<\/td\>/is"; //<table> 태그의 있는 책정보를 모두 가지고 온다. 
+		$td_array = $obj->getBook_Array_Encoding($infourl, $pattern_bookInfo);
+		
+		$info_start_num = 0; //info 
+
+		//상세보기 페이지에서 필요한 정보만 확인할 시작 index를 찾는다.
+		for ($j = 0; $j < count($td_array); $j++) {
+			if ($td_array[$j] == "1") {
+				$info_start_num = $j;
+			}
+		}
+		
+		$tmp_book_array = array();
+		$col_count = 9; //각 책당 자료갯수.
+		$reserv_num = $info_start_num + 4; //예약 정보 배열번호.
+		$location_num = $info_start_num + 1; //위치 정보 배열번호.
+		$mark_num = $info_start_num + 2; //청구 기호 배열번호.
+		$rows = floor((count($td_array)-$info_start_num)/$col_count); //배열의 row 수
+
+		for($k = 0 ; $k < $rows ; $k++) {
+			$tmp_book_array["title"] = trim($title);
+			$td_array[$k * $col_count + $reserv_num] = ($td_array[$k * $col_count + $reserv_num] == "대출중" || $td_array[$k * $col_count + $reserv_num] == "대출불가-분실") ? "false" : "true";
+			$tmp_book_array["reserve"] = trim($td_array[$k * $col_count + $reserv_num]);
+			$tmp_book_array["location"] = trim($td_array[$k * $col_count + $location_num])."  ".trim($td_array[$k * $col_count + $mark_num]);    //위치정보 + 청구기호
+			$tmp_book_array["libcode"] = trim($lib);
+			array_push($lib_array, $tmp_book_array);
+		}
+	}
+
 //이진아기념도서관(페이지 오류로 접근 불가 : 400 Bad Erorr)
 }else if($libcode == "0041"){
 	$url = "http://search.sdmljalib.or.kr/index.php?mod=wdDataSearch&act=searchResultList&manageCode=&searchItem=&searchWord=$isbn";

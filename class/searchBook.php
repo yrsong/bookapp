@@ -6,7 +6,16 @@ include 'Snoopy.class.php';
  * @method getKey($url, $pattern)
  * @method getBook($url, $pattern)
  */
-class searchBook{
+ /**
+ * 도서관 관련 클래스 함수
+ * @since 13.10.02
+ * @최종수정일 13.10.08
+ * -수정사항1 : 1.파일이름 , 클래스 이름 searchBook -> SearchBook 으로 변경
+ *				2.getBook_Array_Encoding 함수 추가  (EUC-KR로된 URL 일때 사용)
+ */	
+
+
+class SearchBook{
 
 	/**
 	 * fsockopen 프록시
@@ -85,7 +94,7 @@ class searchBook{
 		$html = '';
 		$html = $this->getPageCode($url); //url 그래로 변수를 넘긴다.
 		$html = $this->getUTF8Code($html);
-		
+
 		if(preg_match_all($pattern, $html, $regs)){
 			$keyvalue = $regs[1][0];
 			return $keyvalue;
@@ -175,7 +184,26 @@ class searchBook{
 			return $info;
 		}
 	}
-/**
+	
+	/**
+	 * URL로 텍스트형식으로 만들고, 배열 값을 리턴하기 위한 기능.(EUC-KR로된 URL 일때 사용)
+	 * @param unknown_type $url :  URL(ISBN + KEY)
+	 * @param unknown_type $pattern : .
+	 */	
+	function getBook_Array_Encoding($url, $pattern){
+		$snoopy = new Snoopy;
+		$snoopy->fetch($url);
+		$txt = $snoopy->results;
+		$txt = iconv('EUC-KR', 'UTF-8', $txt);
+		$txt = $this->getUTF8Code($txt);
+		
+		if(preg_match_all($pattern, $txt, $result)){
+			$info = $result[1];
+			return $info;
+		}
+	}
+
+	/**
 	 * html entity set -> utf-8로 변환 
 	 * @author syr
 	 * @since 13.10.04
